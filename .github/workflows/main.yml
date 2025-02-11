@@ -1,0 +1,24 @@
+name: Node
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  laravel-tests:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: rsync deployments
+      uses: burnett01/rsync-deployments@7.0.2
+      with:
+        switches: -avzr --delete
+        path: .
+        remote_path: "/home/deploy/public_html"
+        remote_host: 3.107.207.227
+        remote_user: "deploy"
+        remote_key: ${{ secrets.DEPLOY_KEY }}
