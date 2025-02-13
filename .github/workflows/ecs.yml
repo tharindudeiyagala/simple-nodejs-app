@@ -40,4 +40,47 @@ jobs:
         run: |
           docker push ${{ secrets.ECR_URI }}:${{ github.ref_name }}
 
-   
+  deploy-to-ecs:
+    runs-on: ubuntu-latest
+    needs: ECR-push
+    steps:
+      - name: Set up AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-2 # Change to your AWS region
+      
+      - name: Download ECS Task Definition
+        run: |
+          aws ecs describe-task-definition --task-definition Nodejs-TG --query taskDefinition > task-definition.json
+      
+      - name: Check Task Definition File
+        run: |
+          cat task-definition.json || exit 1  # Exit if the file is empty or not valid
+      
+      - name: Update ECS Task Definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: codegnitor-app
+          image: ${{ secrets.ECR_URI }}:${{ github.ref_name }}
+      
+      - name: Deploy to Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          cluster: Nodejs-cluster
+          service: nodejs-service
+          wait-for-service-stability: false
+      
+      - name: Rsync Deployments
+        uses: burnett01/rsync-deployments@7.0.2
+        with:
+          switches: -avzr --delete
+          path: .
+          remote_path: "/home/deploy/public_html"
+          remote_host: 13.236.86.1
+          remote_user: "deploy"
+          remote_key: ${{ secrets.DEPLOY_KEY }}
