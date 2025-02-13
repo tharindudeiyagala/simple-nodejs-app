@@ -64,7 +64,7 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
-          container-name: codegnitor-app
+          container-name: node-app
           image: ${{ secrets.ECR_URI }}:${{ github.ref_name }}
       
       - name: Deploy to Amazon ECS
