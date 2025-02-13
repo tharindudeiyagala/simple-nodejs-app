@@ -50,7 +50,7 @@ jobs:
           switches: -avzr --delete
           path: .
           remote_path: "/home/deploy/public_html"
-          remote_host: 3.107.207.227
+          remote_host: 13.236.86.1
           remote_user: "deploy"
           remote_key: ${{ secrets.DEPLOY_KEY }}
 
@@ -59,7 +59,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_KEY }}
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
-          ssh -o StrictHostKeyChecking=no -i private_key deploy@3.107.207.227 << EOF
+          ssh -o StrictHostKeyChecking=no -i private_key deploy@13.236.86.1 << EOF
             cd /home/deploy/public_html
             npm install
             if [[ "$NODE_ENV" == "development" ]]; then
