@@ -25,9 +25,10 @@ COPY . .
 
 # Copy Nginx configuration from the project directory
 COPY nginx.conf /etc/nginx/sites-available/nodejs
-:
+
 # Enable Nginx configuration
 RUN ln -s /etc/nginx/sites-available/nodejs /etc/nginx/sites-enabled/
+RUN rm -rf /etc/nginx/sites-enabled/default
 
 # Expose the port your app runs on
 EXPOSE 80
