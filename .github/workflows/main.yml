@@ -18,6 +18,6 @@ jobs:
         switches: -avzr --delete
         path: .
         remote_path: "/home/deploy/public_html"
-        remote_host: 3.107.207.227
+        remote_host: 13.236.86.1
         remote_user: "deploy"
         remote_key: ${{ secrets.DEPLOY_KEY }}
