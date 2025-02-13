@@ -1,5 +1,12 @@
-# ================== Stage 1: Build Node.js Application ==================
-FROM node:18-alpine AS builder
+FROM ubuntu:latest
+
+# Install necessary packages
+RUN apt update && apt install -y \
+    curl \
+    nodejs \
+    npm \
+    nginx \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -8,31 +15,22 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install --only=production
+RUN npm install
 
-# Install PM2 globally
+# Install pm2 globally
 RUN npm install -g pm2
 
 # Copy the rest of the application files
 COPY . .
 
-# Expose the Node.js app port
-EXPOSE 3000
+# Copy Nginx configuration from the project directory
+COPY nginx.conf /etc/nginx/sites-available/nodejs
+:
+# Enable Nginx configuration
+RUN ln -s /etc/nginx/sites-available/nodejs /etc/nginx/sites-enabled/
 
-# Start the application with PM2
-CMD ["pm2-runtime", "start", "ecosystem.config.js", "--env", "production"]
-
-# ================== Stage 2: Set Up Nginx Proxy ==================
-FROM nginx:alpine
-
-# Remove default nginx configuration
-RUN rm /etc/nginx/conf.d/default.conf
-
-# Copy custom Nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/
-
-# Expose port 80
+# Expose the port your app runs on
 EXPOSE 80
 
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start the application and Nginx
+CMD pm2 start ecosystem.config.js --env production && nginx -g 'daemon off;'
